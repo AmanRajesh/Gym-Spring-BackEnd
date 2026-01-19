@@ -1,5 +1,8 @@
 package com.automlhybrid.gymspringbackend.analysis; // or com.AutoML_Hybrid.orchestrator.controllers
 
+import com.automlhybrid.gymspringbackend.clients.MlEngineClient;
+import com.automlhybrid.gymspringbackend.dto.AnalysisResponse;
+import com.automlhybrid.gymspringbackend.dto.PipelineRequest;
 import com.automlhybrid.gymspringbackend.storage.StorageService; // New Service we will create
 import com.automlhybrid.gymspringbackend.services.AiSuggestionService; // The updated service
 import lombok.RequiredArgsConstructor;
@@ -14,10 +17,12 @@ import java.util.Map;
 @RequestMapping("/api/analysis")
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor // Generates constructor for final fields
+
 public class AnalysisController {
 
     private final StorageService storageService; // Replaces FileProcessingService
     private final AiSuggestionService aiService;
+    private final MlEngineClient mlEngineClient;
 
     @GetMapping("/")
     public String healthCheck() {
@@ -31,10 +36,16 @@ public class AnalysisController {
             // If MinIO is off, this saves to a local folder
             String fileKey = storageService.uploadFile(file);
 
+            PipelineRequest analysisRequest = new PipelineRequest();
+            analysisRequest.setFileKey(fileKey);
+
+            AnalysisResponse stats = mlEngineClient.analyzeFile(analysisRequest);
             // STEP 2: Call AI Service (Which calls Python)
             // We pass an empty list of actions because it's a fresh upload
             String suggestion = aiService.getAiAdvice(fileKey, List.of());
 
+            stats.setAiSuggestion(suggestion);
+            stats.setFileKey(fileKey);
             // STEP 3: Return Response
             return ResponseEntity.ok(Map.of(
                     "fileKey", fileKey,

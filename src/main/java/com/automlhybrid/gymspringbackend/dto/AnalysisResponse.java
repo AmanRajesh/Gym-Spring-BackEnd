@@ -5,9 +5,13 @@ import java.util.List;
 
 @Data
 public class AnalysisResponse {
+    private String fileKey;
     private int rowCount;
     private List<String> skewedColumns;      // e.g. ["Income", "Price"]
-    private List<String> columnsWithNulls;   // e.g. ["Age"]
+    private List<String> columnsWithNulls;
+    private String aiSuggestion;
+
+
 
     // Helper methods for cleaner logic in the service
     public boolean hasSkewedColumns() {
@@ -17,4 +21,6 @@ public class AnalysisResponse {
     public boolean hasMissingValues() {
         return columnsWithNulls != null && !columnsWithNulls.isEmpty();
     }
+
+
 }
