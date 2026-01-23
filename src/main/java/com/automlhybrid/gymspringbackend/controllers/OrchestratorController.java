@@ -3,9 +3,13 @@ package com.automlhybrid.gymspringbackend.controllers;
 import com.automlhybrid.gymspringbackend.clients.MlEngineClient;
 import com.automlhybrid.gymspringbackend.dto.PipelineRequest;
 import com.automlhybrid.gymspringbackend.dto.PreviewResponse;
+import com.automlhybrid.gymspringbackend.services.MlService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 import java.util.Map;
 
 @RestController
@@ -15,6 +19,8 @@ import java.util.Map;
 public class OrchestratorController {
 
     private final MlEngineClient mlEngineClient;
+    @Autowired
+    private MlService mlService;
 
     // 1. Preview Data (Synchronous CPU)
     @PostMapping("/preview")
@@ -33,4 +39,22 @@ public class OrchestratorController {
 
         return ResponseEntity.ok(response);
     }
+    // for downloading the file , service in ml service
+    @GetMapping("/download-clean/{fileKey}")
+    public ResponseEntity<?> downloadCleanData(@PathVariable String fileKey) {
+
+        // 1. Ask Service for the URL
+        String downloadUrl = mlService.getCleanDataUrl(fileKey);
+
+        // 2. Handle the result
+        if (downloadUrl != null) {
+            // Return JSON: { "url": "http://minio..." }
+            return ResponseEntity.ok(Collections.singletonMap("url", downloadUrl));
+        } else {
+            // Return 404 if not ready yet
+            return ResponseEntity.status(404)
+                    .body(Collections.singletonMap("error", "File not found or still processing"));
+        }
+    }
+
 }

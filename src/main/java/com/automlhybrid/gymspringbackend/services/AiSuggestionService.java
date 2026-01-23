@@ -20,12 +20,12 @@ public class AiSuggestionService {
      * 2. Builds a prompt for Llama.
      * 3. Returns the AI's advice.
      */
-    public String getAiAdvice(String fileKey, List<String> currentActions) {
+    public String getAiAdvice(String fileKey, List<PipelineRequest.PreprocessingStep> currentSteps) {
 
         // STEP 1: Get Statistical Facts from Python (The "Muscle")
         PipelineRequest req = new PipelineRequest();
         req.setFileKey(fileKey);
-        req.setActions(currentActions);
+        req.setPreprocessing(currentSteps);
 
         // This Feign call hits http://ml-engine:8000/analyze
         AnalysisResponse stats = mlEngineClient.analyzeFile(req);
@@ -43,7 +43,7 @@ public class AiSuggestionService {
             prompt.append("- Columns with Nulls: ").append(stats.getColumnsWithNulls()).append("\n");
         }
 
-        prompt.append("\nCurrent Actions Applied: ").append(currentActions).append("\n");
+        prompt.append("\nCurrent Actions Applied: ").append(currentSteps).append("\n");
         prompt.append("Suggest the next best preprocessing step from: [LOG_TRANSFORM, FILL_MEDIAN, STANDARD_SCALE, ONE_HOT_ENCODE].");
 
         // STEP 3: Call your LLM (Llama / OpenAI / Ollama)

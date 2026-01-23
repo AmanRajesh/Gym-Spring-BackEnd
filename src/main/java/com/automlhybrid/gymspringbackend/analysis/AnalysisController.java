@@ -5,6 +5,7 @@ import com.automlhybrid.gymspringbackend.dto.AnalysisResponse;
 import com.automlhybrid.gymspringbackend.dto.PipelineRequest;
 import com.automlhybrid.gymspringbackend.storage.StorageService; // New Service we will create
 import com.automlhybrid.gymspringbackend.services.AiSuggestionService; // The updated service
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,15 +48,16 @@ public class AnalysisController {
             stats.setAiSuggestion(suggestion);
             stats.setFileKey(fileKey);
             // STEP 3: Return Response
-            return ResponseEntity.ok(Map.of(
-                    "fileKey", fileKey,
-                    "filename", file.getOriginalFilename(),
-                    "suggestion", suggestion
-            ));
+            return ResponseEntity.ok(stats);
 
+        } catch (FeignException e) {
+            // Capture Python Errors (404, 422, 500)
+            System.err.println("❌ Python Error: " + e.contentUTF8());
+            return ResponseEntity.status(e.status()).body(e.contentUTF8());
         } catch (Exception e) {
+            // Capture Java Errors
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.internalServerError().body("Java Error: " + e.getMessage());
         }
     }
 }

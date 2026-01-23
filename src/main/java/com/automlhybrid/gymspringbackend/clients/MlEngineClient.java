@@ -4,6 +4,8 @@ import com.automlhybrid.gymspringbackend.dto.AnalysisResponse;
 import com.automlhybrid.gymspringbackend.dto.PipelineRequest;
 import com.automlhybrid.gymspringbackend.dto.PreviewResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import java.util.Map;
@@ -27,4 +29,6 @@ public interface MlEngineClient {
      */
     @PostMapping("/process-job")
     Map<String, Object> startTrainingProcess(@RequestBody PipelineRequest request);
+    @GetMapping("/get-cleaned-data/{fileKey}")
+    Map<String, Object> getCleanedData(@PathVariable("fileKey") String fileKey);
 }
